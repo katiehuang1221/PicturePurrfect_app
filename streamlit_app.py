@@ -85,6 +85,18 @@ from sklearn.metrics import precision_score, recall_score, precision_recall_curv
 # )
 
 
+import time
+# my_bar = st.progress(0)
+# for percent_complete in range(100):
+#     time.sleep(0.1)
+#     my_bar.progress(percent_complete + 1)
+
+# st.spinner()
+# with st.spinner(text='Picking your purrfect picture'):
+#     st.balloons()
+#     time.sleep(5)
+#     st.success('Done')
+# st.balloons()
 
 
 st.title('Welcome to Picture Purrfect!')
@@ -182,6 +194,7 @@ def paginator(label, items, items_per_page=10, on_sidebar=True):
 
 
 def new_video_pick(f,fine):
+
     # First empty data folder if a new file needs to be uploaded
     mypath='data/'
     filelist = [file for file in os.listdir(mypath)]
@@ -197,11 +210,29 @@ def new_video_pick(f,fine):
     tfile = tempfile.NamedTemporaryFile(delete=False)
     tfile.write(f.read())
     cap = cv.VideoCapture(tfile.name)
+
+    # total number of frames
+    frames = cap.get(cv.CAP_PROP_FRAME_COUNT)
+    print('Total num of frames:',frames)
+    # frame per second
     fps = cap.get(cv.CAP_PROP_FPS)
     print('FPS is:', fps)
     fine = fine
     skip = int(fps/10)*fine
     print('SKIP is',skip)
+
+    # calculate dusration of the video
+    duration = int(frames / fps)
+    print('Duration of the video is', duration)
+
+    my_bar = my_slot_result_progress.progress(0)
+    
+    # for percent_complete in range(100):
+    #     time.sleep(0.1)
+    #     my_bar.progress(percent_complete+1)
+
+
+
 
     stframe = st.empty()
 
@@ -223,6 +254,7 @@ def new_video_pick(f,fine):
     i=0
     cat_count=0
     while True:
+        my_bar.progress(int(i*100/frames))
         ret, frame = cap.read()
         # if frame is read correctly ret is True
         if ret:
@@ -488,14 +520,23 @@ def new_video_pick(f,fine):
 
         # Display best frame
         # my_slot1.subheader('Your purrfect picture!')
+        my_slot_result_progress.empty()
+        st.balloons()
         my_slot_result.subheader('Your purrfect picture!')
         best_frame = df.frame_name.iloc[0]
         # stframe = st.empty()
         # stframe.image('data/' + best_frame)
         my_slot_result_image.image('data/' + best_frame)
+        # my_slot_result_like
+        col1, col2,col3 = my_slot_result_like.beta_columns([1,0.25,0.2])
+        # col1.markdown(":hearts:")
+        col2.button('♥️...Love it!')
+        col3.button('👿...Nope!')
+        
 
     except:
-        my_slot_result.subheader('Sorry...no cat face detected!')
+        my_slot_result.subheader('Sorry...no cat face detected!  😿')
+        my_slot_result_progress.empty()
 
  
 
@@ -523,9 +564,15 @@ if choice == "Your purrfect pic":
     my_slot_file = st.empty()
     my_slot_pick_buton = st.empty()
     my_slot_result = st.empty()
+    my_slot_result_progress =st.empty()
     my_slot_result_image = st.empty()
+    my_slot_result_like = st.empty()
     my_slot_previous_result_head = st.empty()
     my_slot_previous_result_image = st.empty()
+
+
+
+    
 
     # st.subheader('Upload a new video')
     # f = st.file_uploader('Upload your video here:',type=['MOV','MP4'],key='another video')
@@ -598,14 +645,14 @@ if choice == "Your purrfect pic":
         my_slot_file.write(f.name)
 
     how_fine = my_slot_slider.select_slider(
-        'How do you want us to go through the frames?',
+        'How do you want the frames to be sifted?',
         options=['course (I want it fast)', 'medium', 'fine (I can wait)'],key='another video test')
     # st.write('You selected:', how_fine)
 
     fine_convert = {'course (I want it fast)':2, 'medium':1, 'fine (I can wait)':0.5}
     fine = fine_convert[how_fine]
     
-    if my_slot_pick_buton.button('Start picking',key='empty test'):
+    if my_slot_pick_buton.button('Start picking  🐾 ',key='empty test'):
         if f is not None:
             new_video_pick(f,fine)
 
@@ -659,6 +706,9 @@ if choice == 'Customize picker':
 
     # Create empty slots
     my_slot_image = st.empty()
+    my_slot_caption_like = st.empty()
+    
+
     my_slot_caption = st.empty()
     my_slot_dataframe = st.empty()
     
@@ -666,6 +716,8 @@ if choice == 'Customize picker':
     try:
         # Default
         df = pd.read_csv('./data/df_predict.csv').sort_values(['prob'],ascending=[False])
+        df['face_frame_ctr'] = abs((df['eye_x1']+df['eye_x2'])/2 - 0.5) +\
+                           abs(((df['eye_y1']+df['eye_y2'])/2+df['nose_y'])/2 - 0.5)
         df['en_x_delta'] = abs((df['eye_x1']+df['eye_x2'])/2 - df['nose_x'])
         df['eye_h_sum'] = (df['eye_h1']+df['eye_h2'])*df['eye_ratio']
         df['eye_shape'] = (df['eye_h']/df['eye_w'])/df['en_x_delta']
@@ -685,7 +737,7 @@ if choice == 'Customize picker':
         st.sidebar.subheader('Criteria Selector')
         criterion = st.sidebar.radio(
             "What are your criterion for a good picture?",
-            ('Original','Sharp','Cat face at center', 'Cat close to camera', 'Big cat eyes', 'Give me something funny!'))
+            ('Original','Sharp','Big eyes', 'Face at center', 'So close to the camera!', 'Give me something funny!'))
 
         if criterion == 'Original':
             df = pd.read_csv('./data/df_predict.csv').sort_values(['prob'],ascending=[False])
@@ -697,24 +749,30 @@ if choice == 'Customize picker':
         else:
             if criterion == 'Sharp':
                 df_filtered = df.sort_values('lp_cat_canny',ascending=False)
-                my_slot_caption.write('Sharpest  cat!')
+                # my_slot_caption.write('Am I sharp enough?')
+                text = 'Am I sharp enough?'
 
-            if criterion == 'Cat face at center':
+            elif criterion == 'Face at center':
                 # Generate features to address face angle
-                df_filtered = df_filtered[df_filtered.num_eye == 2].sort_values('en_x_delta')  
-                my_slot_caption.write('When the cat face is at the center of the photo.')     
+                df_filtered = df_filtered[df_filtered.num_eye == 2].sort_values('en_x_delta') 
+                df_filtered = df_filtered.sort_values(['lp_cat_canny','face_frame_ctr'],ascending=[False,True]) .iloc[1:]
+                # my_slot_caption.write('When the cat face is at the center of the photo.')  
+                text = 'I am the center of the universe!'   
 
-            if criterion == 'Cat close to camera':
+            elif criterion == 'So close to the camera!':
                 df_filtered = df_filtered.sort_values('size_ratio',ascending=False)
-                my_slot_caption.write('This is when the cat face is the closest to your camera...')    
+                # my_slot_caption.write('This is when the cat face is the closest to your camera...')    
+                text='Am I too close to the camera?'
 
-            if criterion == 'Big cat eyes':
-                df_filtered = df_filtered.sort_values('new_eye_size',ascending=False)
-                my_slot_caption.write('This is when the cat opened its eye.') 
+            elif criterion == 'Big eyes':
+                df_filtered = df_filtered.sort_values('new_eye_size',ascending=False).iloc[1:]
+                # my_slot_caption.write('This is when the cat opened its eye.') 
+                text='This is when I have my eyes wide open!'
 
-            if criterion == 'Give me something funny!':
+            elif criterion == 'Give me something funny!':
                 df_filtered = df_filtered.sort_values('eye_shape',ascending=True).iloc[[thres//2]]
-                my_slot_caption.write('Hi there! Am I cute?') 
+                # my_slot_caption.write('Hi there! Am I cute?') 
+                text='Hi there! Am I cute?'
                 
 
 
@@ -734,6 +792,15 @@ if choice == 'Customize picker':
             best_frame = df_filtered.frame_name.iloc[0]
             my_slot_image.image('data/' + best_frame)
             # my_slot_dataframe.write(df_filtered.iloc[:,1:])
+
+
+            
+            # my_slot_result_like
+            col1, col2,col3 = my_slot_caption_like.beta_columns([1,0.25,0.2])
+            # col1.markdown(":hearts:")
+            col2.button('♥️...Love it!')
+            col3.button('👿...Nope!')
+            col1.write(text)
 
 
 
@@ -765,7 +832,129 @@ if choice == "Home":
 
 
 
+
+
+
+
+
+
+
+
+def draw_all(
+    key,
+    plot=False,
+):
+    st.write(
+        """
+        # Example Widgets
+        
+        These widgets don't do anything. But look at all the new colors they got 👀 
+    
+        ```python
+        # First some code.
+        streamlit = "cool"
+        theming = "fantastic"
+        both = "💥"
+        ```
+        """
+    )
+
+    st.checkbox("Is this cool or what?", key=key)
+    st.radio(
+        "How many balloons?",
+        ["1 balloon 🎈", "2 balloons 🎈🎈", "3 balloons 🎈🎈🎈"],
+        key=key,
+    )
+    st.button("🤡 Click me", key=key)
+
+    # if plot:
+    #     st.write("Oh look, a plot:")
+    #     x1 = np.random.randn(200) - 2
+    #     x2 = np.random.randn(200)
+    #     x3 = np.random.randn(200) + 2
+
+    #     hist_data = [x1, x2, x3]
+    #     group_labels = ["Group 1", "Group 2", "Group 3"]
+
+    #     fig = ff.create_distplot(hist_data, group_labels, bin_size=[0.1, 0.25, 0.5])
+
+    #     st.plotly_chart(fig, use_container_width=True)
+
+    st.file_uploader("You can now upload with style", key=key)
+    st.slider(
+        "From 10 to 11, how cool are themes?", min_value=10, max_value=11, key=key
+    )
+    # st.select_slider("Pick a number", [1, 2, 3], key=key)
+    st.number_input("So many numbers", key=key)
+    st.text_area("A little writing space for you :)", key=key)
+    st.selectbox(
+        "My favorite thing in the world is...",
+        ["Streamlit", "Theming", "Baloooons 🎈 "],
+        key=key,
+    )
+    # st.multiselect("Pick a number", [1, 2, 3], key=key)
+    # st.color_picker("Colors, colors, colors", key=key)
+    with st.beta_expander("Expand me!"):
+        st.write("Hey there! Nothing to see here 👀 ")
+    st.write("")
+    # st.write("That's our progress on theming:")
+    # st.progress(0.99)
+    if plot:
+        st.write("And here's some data and plots")
+        st.json({"data": [1, 2, 3, 4]})
+        st.dataframe({"data": [1, 2, 3, 4]})
+        st.table({"data": [1, 2, 3, 4]})
+        st.line_chart({"data": [1, 2, 3, 4]})
+        # st.help(st.write)
+    st.write("This is the end. Have fun building themes!")
+
+    
+
 if choice == "Test":
+
+    st_title = st.empty()
+    st_progress_bar = st.empty()
+
+    class tqdm:
+        def __init__(self, iterable, title=None):
+            if title:
+                st_title.write(title)
+            self.prog_bar = st_progress_bar.progress(0)
+            self.iterable = iterable
+            self.length = len(iterable)
+            self.i = 0
+
+        def __iter__(self):
+            for obj in self.iterable:
+                yield obj
+                self.i += 1
+                current_prog = self.i / self.length
+                self.prog_bar.progress(current_prog)
+
+
+
+    for i in tqdm(range(200), title='tqdm style progress bar'):
+        time.sleep(0.05)
+
+    st_title.empty()
+    st_progress_bar.empty()
+
+    st.balloons()
+
+
+    col1, col2 = st.beta_columns([0.2,1])
+    # col1.markdown(":hearts:")
+    col1.button('♥️...Love it!')
+    col2.button('👿...Nope!')
+
+    # Draw some dummy content in main page and sidebar.
+    draw_all("main", plot=True)
+    with st.sidebar:
+        draw_all("sidebar")
+
+    
+
+
 
     
 
