@@ -14,6 +14,8 @@ import altair as alt
 import matplotlib.pyplot as plt
 import seaborn as sns
 sns.set()
+from altair import *
+
 from sklearn.linear_model import LogisticRegression
 from sklearn.preprocessing import StandardScaler, PolynomialFeatures, OneHotEncoder
 from sklearn.metrics import confusion_matrix, accuracy_score, classification_report
@@ -100,6 +102,7 @@ import time
 
 
 st.title('Welcome to Picture Purrfect!')
+my_slot_header_all = st.empty()
 
 st.sidebar.header('MENU')
 menu = ['Test','Home','Your purrfect pic','Customize picker', 'Analysis','About']
@@ -694,7 +697,7 @@ if choice == "Your purrfect pic":
     #             st.write(df.iloc[:,1:])
 
     
-if choice == 'Customize picker':
+if choice == "Customize picker":
 
     st.subheader('Customized picker')
     st.write("Don't like the photo we picked? No worries!\
@@ -720,7 +723,12 @@ if choice == 'Customize picker':
                            abs(((df['eye_y1']+df['eye_y2'])/2+df['nose_y'])/2 - 0.5)
         df['en_x_delta'] = abs((df['eye_x1']+df['eye_x2'])/2 - df['nose_x'])
         df['eye_h_sum'] = (df['eye_h1']+df['eye_h2'])*df['eye_ratio']
-        df['eye_shape'] = (df['eye_h']/df['eye_w'])/df['en_x_delta']
+        df['eye_shape'] = (df['eye_h']/df['eye_w'])
+        df['eye_shape_1'] = (df['eye_h1']/df['eye_w1'])
+        df['eye_shape_2'] = (df['eye_h2']/df['eye_w2'])
+        df['eye_shape_diff'] = abs(df['eye_shape_1']-df['eye_shape_2'])
+        df['eye_height_diff'] = abs(df['eye_h1']-df['eye_h2'])
+        # /df['en_x_delta']
         df['new_eye_size'] = df['eye_h']/df['size_ratio']
         best_frame = df.frame_name.iloc[0]
         # st.write(df)
@@ -766,11 +774,15 @@ if choice == 'Customize picker':
 
             elif criterion == 'Big eyes':
                 df_filtered = df_filtered.sort_values('new_eye_size',ascending=False).iloc[1:]
+                df_filtered = df_filtered.sort_values(['eye_shape'],ascending=[False]).head(5)
+                df_filtered = df_filtered.sort_values(['lp_cat_canny'],ascending=[False])
                 # my_slot_caption.write('This is when the cat opened its eye.') 
                 text='This is when I have my eyes wide open!'
 
             elif criterion == 'Give me something funny!':
-                df_filtered = df_filtered.sort_values('eye_shape',ascending=True).iloc[[thres//2]]
+                # df_filtered = df_filtered.sort_values('eye_shape',ascending=True).iloc[[thres//2]]
+                df_filtered = df_filtered.sort_values('eye_h_sum',ascending=True).head(3)
+                # df_filtered = df_filtered.sort_values(['lp_cat_canny'],ascending=[False])
                 # my_slot_caption.write('Hi there! Am I cute?') 
                 text='Hi there! Am I cute?'
                 
@@ -830,8 +842,100 @@ if choice == "Home":
     st.write("Now you can let Picture Purrfect do the hard job for you! Just take a short video of your cat and the best moment will be picked automatically!")
 
 
+if choice == "Analysis":
+    my_slot_header_all = st.write('In this section, you can examine the statistics of cat detection in your video.')    
 
 
+    result = pd.read_csv('./data/df_predict.csv').iloc[:,1:].sort_values('frame_name').reset_index(drop=True)
+    result['EYE_count']=[str(x) for x in result.num_eye.tolist()]
+
+    result['new_eye_h'] = result['eye_h']/result['face_size']
+    result['new_eye_w'] = result['eye_w']/result['face_size']
+
+
+    # First plot
+    result_sort = result[['frame_name','new_eye_w','new_eye_h','lp_cat_canny','EYE_count']].sort_values('new_eye_h').iloc[20:-5]
+    result_sort.columns = ['Frame Name','Eye Width','Eye Height','Face Sharpness','Number of eyes detected']
+
+    c = alt.Chart(result_sort).mark_circle(opacity=.8).encode(
+        x=alt.X('Eye Height',axis=alt.Axis(labels=False),
+                scale=Scale(domain=[np.mean(result['new_eye_h'])/2, 1.5*np.mean(result['new_eye_h'])])
+            ),
+        y=alt.Y('Eye Width',axis=alt.Axis(labels=False)),
+        size='Face Sharpness',
+    #     color='Number of eyes detected',
+    #     color = alt.Color('Number of eyes detected',
+    #                       scale=alt.Scale(scheme = 'set2')
+        color = alt.Color('Number of eyes detected',
+                        scale=alt.Scale(range=['#647FC7','#C7648E',])
+                        ),
+        tooltip=['Frame Name',]).properties(width=700, height=250
+    )
+
+    st.subheader('Eye Shape Analysis')
+    st.write(c)
+
+
+    # Second plot
+    MAX = max(result.face_size)
+    MIN = min(result.face_size)
+    section = (max(result.face_size)-min(result.face_size))//3
+
+    FACE_SIZE = []
+    for x in result.face_size.tolist():
+        if x<MIN+section:
+            FACE_SIZE.append('small')
+        elif MIN+section < x < MIN + 2*section:
+            FACE_SIZE.append('medium')
+        else:
+            FACE_SIZE.append('large')
+
+    result['Face size'] = FACE_SIZE
+
+    result_middle_all = result.sort_values('new_eye_h').iloc[20:-10]
+    result_middle = result_middle_all[['lp_cat_canny','lp_ratio','Face size']]
+    result_middle.columns = ['Cat face sharpness','Sharpness ratio (cat:whole frame)','Face size']
+
+
+    points = alt.Chart(result_middle).mark_circle(size=200).encode(
+        alt.X('Cat face sharpness'),
+        alt.Y('Sharpness ratio (cat:whole frame)'),
+    #     color='FACE_SIZE',
+        color = alt.Color('Face size',
+                        scale=alt.Scale(range=['#8C85D9', '#64C7B1', '#D5ABCA',])),
+    )
+
+    top_hist = alt.Chart(result_middle).mark_area(
+        opacity=.5, interpolate='step'
+    ).encode(
+        alt.X('Cat face sharpness:Q', 
+            bin=alt.Bin(maxbins=20), 
+            stack=None, 
+            
+            ),
+        alt.Y('count(*):Q', 
+            stack=None, 
+            ),
+        alt.Color('Face size:N'),
+    ).properties(height=60)
+
+    right_hist = alt.Chart(result_middle).mark_area(
+        opacity=.5, interpolate='step'
+    ).encode(
+        alt.Y('Sharpness ratio (cat:whole frame):Q', 
+            bin=alt.Bin(maxbins=20), 
+            stack=None,
+            ),
+        alt.X('count(*):Q', 
+            stack=None, 
+            ),
+        alt.Color('Face size:N'),
+    ).properties(width=60)
+
+    chart = top_hist & (points | right_hist)
+
+    st.subheader('Blur Detection Analysis')
+    st.write(chart)
 
 
 
@@ -908,36 +1012,336 @@ def draw_all(
         # st.help(st.write)
     st.write("This is the end. Have fun building themes!")
 
+
+
+
+
+    # if plot:
+    #     st.write("Oh look, a plot:")
+    #     x1 = np.random.randn(200) - 2
+    #     x2 = np.random.randn(200)
+    #     x3 = np.random.randn(200) + 2
+
+    #     hist_data = [x1, x2, x3]
+    #     group_labels = ["Group 1", "Group 2", "Group 3"]
+
+    #     fig = ff.create_distplot(hist_data, group_labels, bin_size=[0.1, 0.25, 0.5])
+
+    #     st.plotly_chart(fig, use_container_width=True)
+
+    st.file_uploader("You can now upload with style", key=key)
+    st.slider(
+        "From 10 to 11, how cool are themes?", min_value=10, max_value=11, key=key
+    )
+    # st.select_slider("Pick a number", [1, 2, 3], key=key)
+    st.number_input("So many numbers", key=key)
+    st.text_area("A little writing space for you :)", key=key)
+    st.selectbox(
+        "My favorite thing in the world is...",
+        ["Streamlit", "Theming", "Baloooons 🎈 "],
+        key=key,
+    )
+    # st.multiselect("Pick a number", [1, 2, 3], key=key)
+    # st.color_picker("Colors, colors, colors", key=key)
+    with st.beta_expander("Expand me!"):
+        st.write("Hey there! Nothing to see here 👀 ")
+    st.write("")
+    # st.write("That's our progress on theming:")
+    # st.progress(0.99)
+    if plot:
+        st.write("And here's some data and plots")
+        st.json({"data": [1, 2, 3, 4]})
+        st.dataframe({"data": [1, 2, 3, 4]})
+        st.table({"data": [1, 2, 3, 4]})
+        st.line_chart({"data": [1, 2, 3, 4]})
+        # st.help(st.write)
+    st.write("This is the end. Have fun building themes!")
+
     
 
 if choice == "Test":
 
-    st_title = st.empty()
-    st_progress_bar = st.empty()
+    
+    result = pd.read_csv('./data/df_predict.csv').iloc[:,1:].sort_values('frame_name').reset_index(drop=True)
+    result['EYE_count']=[str(x) for x in result.num_eye.tolist()]
 
-    class tqdm:
-        def __init__(self, iterable, title=None):
-            if title:
-                st_title.write(title)
-            self.prog_bar = st_progress_bar.progress(0)
-            self.iterable = iterable
-            self.length = len(iterable)
-            self.i = 0
+    result['new_eye_h'] = result['eye_h']/result['face_size']
+    result['new_eye_w'] = result['eye_w']/result['face_size']
 
-        def __iter__(self):
-            for obj in self.iterable:
-                yield obj
-                self.i += 1
-                current_prog = self.i / self.length
-                self.prog_bar.progress(current_prog)
+    MAX = max(result.face_size)
+    MIN = min(result.face_size)
+    section = (max(result.face_size)-min(result.face_size))//3
+
+    FACE_SIZE = []
+    for x in result.face_size.tolist():
+        if x<MIN+section:
+            FACE_SIZE.append('small')
+        elif MIN+section < x < MIN + 2*section:
+            FACE_SIZE.append('medium')
+        else:
+            FACE_SIZE.append('large')
+
+    result['FACE_SIZE'] = FACE_SIZE
+
+    result_middle = result.sort_values('new_eye_h').iloc[20:-10]
+    # vega.scheme('basic', ['#f00', '#0f0', '#00f', '#ff0', '#f0f', '#0ff']);
+
+
+    points = alt.Chart(result_middle).mark_circle(size=200).encode(
+        alt.X('lp_cat_canny'),
+        alt.Y('lp_ratio'),
+    #     color='FACE_SIZE',
+        color = alt.Color('FACE_SIZE',
+                        scale=alt.Scale(range=['#8C85D9', '#64C7B1', '#D5ABCA',])),
+    )
+
+    top_hist = alt.Chart(result_middle).mark_area(
+        opacity=.5, interpolate='step'
+    ).encode(
+        alt.X('lp_cat_canny:Q', 
+            bin=alt.Bin(maxbins=20), 
+            stack=None, 
+            
+            ),
+        alt.Y('count(*):Q', 
+            stack=None, 
+            ),
+        alt.Color('FACE_SIZE:N'),
+    ).properties(height=60)
+
+    right_hist = alt.Chart(result_middle).mark_area(
+        opacity=.5, interpolate='step'
+    ).encode(
+        alt.Y('lp_ratio:Q', 
+            bin=alt.Bin(maxbins=20), 
+            stack=None,
+            ),
+        alt.X('count(*):Q', 
+            stack=None, 
+            ),
+        alt.Color('FACE_SIZE:N'),
+    ).properties(width=60)
+
+    chart = top_hist & (points | right_hist)
+
+    st.write(chart)
 
 
 
-    for i in tqdm(range(200), title='tqdm style progress bar'):
-        time.sleep(0.05)
+    result['new_eye_h'] = result['eye_h']/result['face_size']
+    result['new_eye_w'] = result['eye_w']/result['face_size']
+    print(np.mean(result['new_eye_w']))
+    result_sort = result[['frame_name','new_eye_w','new_eye_h','lp_cat_canny','EYE_count']].sort_values('new_eye_h').iloc[20:-5]
+    result_sort.columns = ['Frame Name','Eye Width','Eye Height','Face Sharpness','Number of eyes detected']
 
-    st_title.empty()
-    st_progress_bar.empty()
+
+    c = alt.Chart(result_sort).mark_circle(opacity=.8).encode(
+        x=alt.X('Eye Height',axis=alt.Axis(labels=False),
+                scale=Scale(domain=[np.mean(result['new_eye_h'])/2, 1.5*np.mean(result['new_eye_h'])])
+            ),
+        y=alt.Y('Eye Width',axis=alt.Axis(labels=False)),
+        size='Face Sharpness',
+    #     color='Number of eyes detected',
+    #     color = alt.Color('Number of eyes detected',
+    #                       scale=alt.Scale(scheme = 'set2')
+        color = alt.Color('Number of eyes detected',
+                        scale=alt.Scale(range=['#647FC7','#C7648E',])
+                        ),
+        tooltip=['Frame Name',]).properties(width=700, height=250
+    )
+    st.write(c) 
+
+    import altair as alt
+    from vega_datasets import data
+
+    iris = data.iris()
+
+    xrange = (3, 9)
+    yrange = (1, 6)
+
+    points = alt.Chart(iris).mark_circle().encode(
+        alt.X('sepalLength', scale=alt.Scale(domain=xrange)),
+        alt.Y('sepalWidth', scale=alt.Scale(domain=yrange)),
+        color='species',
+    )
+
+    top_hist = alt.Chart(iris).mark_area(
+        opacity=.4, interpolate='step'
+    ).encode(
+        alt.X('sepalLength:Q', 
+            bin=alt.Bin(maxbins=20, extent=xrange), 
+            stack=None, 
+            scale=alt.Scale(domain=xrange),
+            ),
+        alt.Y('count(*):Q', 
+            stack=None, 
+            ),
+        alt.Color('species:N'),
+    ).properties(height=60)
+
+    right_hist = alt.Chart(iris).mark_area(
+        opacity=.4, interpolate='step'
+    ).encode(
+        alt.Y('sepalWidth:Q', 
+            bin=alt.Bin(maxbins=20, extent=yrange), 
+            stack=None,
+            scale=alt.Scale(domain=yrange),
+            ),
+        alt.X('count(*):Q', 
+            stack=None, 
+            ),
+        alt.Color('species:N'),
+    ).properties(width=60)
+
+    chart = top_hist & (points | right_hist)
+    st.write(chart)
+
+
+    import pandas as pd
+    from IPython.core.display import display,HTML
+
+    df = pd.DataFrame([['A231', 'Book', 5, 3, 150], 
+                    ['M441', 'Magic Staff', 10, 7, 200]],
+                    columns = ['Code', 'Name', 'Price', 'Net', 'Sales'])
+
+    # your images
+    images = ['https://vignette.wikia.nocookie.net/2007scape/images/7/7a/Mage%27s_book_detail.png/revision/latest?cb=20180310083825',
+            'https://i.pinimg.com/originals/d9/5c/9b/d95c9ba809aa9dd4cb519a225af40f2b.png'] 
+    images = ['data/'+ x for x in result.frame_name.tolist()][:2]
+
+
+    df['image'] = images
+
+    # convert your links to html tags 
+    def path_to_image_html(path):
+        return '<img src="'+ path + '" width="60" >'
+
+    pd.set_option('display.max_colwidth', None)
+    import streamlit.components.v1 as components
+    components.html(df.to_html(escape=False ,formatters=dict(image=path_to_image_html)))
+
+    st.write(df)
+
+
+    np.random.seed(0)
+
+    n_objects = 20
+    n_times = 50
+
+    # Create one (x, y) pair of metadata per object
+    locations = pd.DataFrame({
+        'id': range(n_objects),
+        'x': np.random.randn(n_objects),
+        'y': np.random.randn(n_objects)
+    })
+
+    # Create a 50-element time-series for each object
+    timeseries = pd.DataFrame(np.random.randn(n_times, n_objects).cumsum(0),
+                            columns=locations['id'],
+                            index=pd.RangeIndex(0, n_times, name='time'))
+
+    # Melt the wide-form timeseries into a long-form view
+    timeseries = timeseries.reset_index().melt('time')
+
+    # Merge the (x, y) metadata into the long-form view
+    timeseries['id'] = timeseries['id'].astype(int)  # make merge not complain
+    data = pd.merge(timeseries, locations, on='id')
+
+    # Data is prepared, now make a chart
+
+    selector = alt.selection_single(empty='all', fields=['id'])
+
+    base = alt.Chart(data).properties(
+        width=250,
+        height=250
+    ).add_selection(selector)
+
+    points = base.mark_point(filled=True, size=200).encode(
+        x='mean(x)',
+        y='mean(y)',
+        color=alt.condition(selector, 'id:O', alt.value('lightgray'), legend=None),
+    )
+
+    timeseries = base.mark_line().encode(
+        x='time',
+        y=alt.Y('value', scale=alt.Scale(domain=(-15, 15))),
+        color=alt.Color('id:O', legend=None)
+    ).transform_filter(
+        selector
+    )
+
+    points | timeseries
+
+    from bokeh.plotting import figure, output_file, show, ColumnDataSource
+    from bokeh.models import HoverTool
+
+    output_file("toolbar.html")
+    
+
+    source = ColumnDataSource(
+            data=dict(
+                x=[1, 2, 3, 4, 5],
+                y=[2, 5, 8, 2, 7],
+                desc=['A', 'b', 'C', 'd', 'E'],
+                imgs = ['data/'+ x for x in result.frame_name.tolist()]
+            )
+        )
+
+    hover = HoverTool(
+            tooltips="""
+            <div>
+                <div>
+                    <img
+                        src="@imgs"  alt="@imgs" 
+                        style="float: left; margin: 0px 15px 15px 0px;"
+                        border="2"
+                    ></img>
+                </div>
+                <div>
+                    <span style="font-size: 17px; font-weight: bold;">@desc</span>
+                    <span style="font-size: 15px; color: #966;">[$index]</span>
+                </div>
+                <div>
+                    <span style="font-size: 15px;">Location</span>
+                    <span style="font-size: 10px; color: #696;">($x, $y)</span>
+                </div>
+            </div>
+            """
+        )
+
+    p = figure(plot_width=400, plot_height=400, tools=[hover],
+            title="Mouse over the dots")
+
+    p.circle('x', 'y', size=20, source=source)
+
+    st.bokeh_chart(p)
+
+    # st_title = st.empty()
+    # st_progress_bar = st.empty()
+
+    # class tqdm:
+    #     def __init__(self, iterable, title=None):
+    #         if title:
+    #             st_title.write(title)
+    #         self.prog_bar = st_progress_bar.progress(0)
+    #         self.iterable = iterable
+    #         self.length = len(iterable)
+    #         self.i = 0
+
+    #     def __iter__(self):
+    #         for obj in self.iterable:
+    #             yield obj
+    #             self.i += 1
+    #             current_prog = self.i / self.length
+    #             self.prog_bar.progress(current_prog)
+
+
+
+    # for i in tqdm(range(200), title='tqdm style progress bar'):
+    #     time.sleep(0.05)
+
+    # st_title.empty()
+    # st_progress_bar.empty()
 
     st.balloons()
 
@@ -1159,3 +1563,12 @@ if choice == "Test":
     my_slot1.subheader('Doing it')
     time.sleep(1)
     my_slot1.subheader('DONE!')
+
+
+
+st.sidebar.header("")
+st.sidebar.header("")
+# st.sidebar.header("")
+# st.sidebar.header("")
+
+st.sidebar.markdown('###### Made by Katie Huang 2021')
