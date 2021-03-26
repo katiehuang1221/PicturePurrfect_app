@@ -105,7 +105,8 @@ st.title('Welcome to Picture Purrfect!')
 my_slot_header_all = st.empty()
 
 st.sidebar.header('MENU')
-menu = ['Test','Home','Your purrfect pic','Customize picker', 'Analysis','About']
+menu = ['Home','Your purrfect pic','Customize picker', 'Analysis','About']
+# ['Test','Home','Your purrfect pic','Customize picker', 'Analysis','About']
 choice = st.sidebar.selectbox("", menu)
 
 page_bg_img = '''
@@ -825,10 +826,10 @@ if choice == "Home":
     st.subheader('Capture the best momemt with your furry friend!')
 
     from PIL import Image
-    image1 = Image.open('chiffon.jpg')
-    image2 = Image.open('cheddar.jpg')
-    image3 = Image.open('chiffon2.jpg')
-    image4 = Image.open('cheddar2.jpg')
+    image1 = Image.open('./img/chiffon.jpg')
+    image2 = Image.open('./img/cheddar.jpg')
+    image3 = Image.open('./img/chiffon2.jpg')
+    image4 = Image.open('./img/cheddar2.jpg')
 
 
     cat_imgs=[image1,image2,image3,image4]
@@ -858,7 +859,7 @@ if choice == "Analysis":
     result_sort.columns = ['Frame Name','Eye Width','Eye Height','Face Sharpness','Number of eyes detected']
 
     c = alt.Chart(result_sort).mark_circle(opacity=.8).encode(
-        x=alt.X('Eye Height',axis=alt.Axis(labels=False),
+        x=alt.X('Eye Height',axis=alt.Axis(gridColor='black',gridWidth=.1,labels=False),
                 scale=Scale(domain=[np.mean(result['new_eye_h'])/2, 1.5*np.mean(result['new_eye_h'])])
             ),
         y=alt.Y('Eye Width',axis=alt.Axis(labels=False)),
@@ -867,7 +868,7 @@ if choice == "Analysis":
     #     color = alt.Color('Number of eyes detected',
     #                       scale=alt.Scale(scheme = 'set2')
         color = alt.Color('Number of eyes detected',
-                        scale=alt.Scale(range=['#647FC7','#C7648E',])
+                        scale=alt.Scale(range=['#C7648E','#3A5AB1',])
                         ),
         tooltip=['Frame Name',]).properties(width=700, height=250
     )
@@ -902,7 +903,7 @@ if choice == "Analysis":
         alt.Y('Sharpness ratio (cat:whole frame)'),
     #     color='FACE_SIZE',
         color = alt.Color('Face size',
-                        scale=alt.Scale(range=['#8C85D9', '#64C7B1', '#D5ABCA',])),
+                        scale=alt.Scale(range=['#D690AC','#6F88CD','#64C7B1',])),
     )
 
     top_hist = alt.Chart(result_middle).mark_area(
@@ -1068,133 +1069,7 @@ if choice == "Test":
     result['new_eye_h'] = result['eye_h']/result['face_size']
     result['new_eye_w'] = result['eye_w']/result['face_size']
 
-    MAX = max(result.face_size)
-    MIN = min(result.face_size)
-    section = (max(result.face_size)-min(result.face_size))//3
-
-    FACE_SIZE = []
-    for x in result.face_size.tolist():
-        if x<MIN+section:
-            FACE_SIZE.append('small')
-        elif MIN+section < x < MIN + 2*section:
-            FACE_SIZE.append('medium')
-        else:
-            FACE_SIZE.append('large')
-
-    result['FACE_SIZE'] = FACE_SIZE
-
-    result_middle = result.sort_values('new_eye_h').iloc[20:-10]
-    # vega.scheme('basic', ['#f00', '#0f0', '#00f', '#ff0', '#f0f', '#0ff']);
-
-
-    points = alt.Chart(result_middle).mark_circle(size=200).encode(
-        alt.X('lp_cat_canny'),
-        alt.Y('lp_ratio'),
-    #     color='FACE_SIZE',
-        color = alt.Color('FACE_SIZE',
-                        scale=alt.Scale(range=['#8C85D9', '#64C7B1', '#D5ABCA',])),
-    )
-
-    top_hist = alt.Chart(result_middle).mark_area(
-        opacity=.5, interpolate='step'
-    ).encode(
-        alt.X('lp_cat_canny:Q', 
-            bin=alt.Bin(maxbins=20), 
-            stack=None, 
-            
-            ),
-        alt.Y('count(*):Q', 
-            stack=None, 
-            ),
-        alt.Color('FACE_SIZE:N'),
-    ).properties(height=60)
-
-    right_hist = alt.Chart(result_middle).mark_area(
-        opacity=.5, interpolate='step'
-    ).encode(
-        alt.Y('lp_ratio:Q', 
-            bin=alt.Bin(maxbins=20), 
-            stack=None,
-            ),
-        alt.X('count(*):Q', 
-            stack=None, 
-            ),
-        alt.Color('FACE_SIZE:N'),
-    ).properties(width=60)
-
-    chart = top_hist & (points | right_hist)
-
-    st.write(chart)
-
-
-
-    result['new_eye_h'] = result['eye_h']/result['face_size']
-    result['new_eye_w'] = result['eye_w']/result['face_size']
-    print(np.mean(result['new_eye_w']))
-    result_sort = result[['frame_name','new_eye_w','new_eye_h','lp_cat_canny','EYE_count']].sort_values('new_eye_h').iloc[20:-5]
-    result_sort.columns = ['Frame Name','Eye Width','Eye Height','Face Sharpness','Number of eyes detected']
-
-
-    c = alt.Chart(result_sort).mark_circle(opacity=.8).encode(
-        x=alt.X('Eye Height',axis=alt.Axis(labels=False),
-                scale=Scale(domain=[np.mean(result['new_eye_h'])/2, 1.5*np.mean(result['new_eye_h'])])
-            ),
-        y=alt.Y('Eye Width',axis=alt.Axis(labels=False)),
-        size='Face Sharpness',
-    #     color='Number of eyes detected',
-    #     color = alt.Color('Number of eyes detected',
-    #                       scale=alt.Scale(scheme = 'set2')
-        color = alt.Color('Number of eyes detected',
-                        scale=alt.Scale(range=['#647FC7','#C7648E',])
-                        ),
-        tooltip=['Frame Name',]).properties(width=700, height=250
-    )
-    st.write(c) 
-
-    import altair as alt
-    from vega_datasets import data
-
-    iris = data.iris()
-
-    xrange = (3, 9)
-    yrange = (1, 6)
-
-    points = alt.Chart(iris).mark_circle().encode(
-        alt.X('sepalLength', scale=alt.Scale(domain=xrange)),
-        alt.Y('sepalWidth', scale=alt.Scale(domain=yrange)),
-        color='species',
-    )
-
-    top_hist = alt.Chart(iris).mark_area(
-        opacity=.4, interpolate='step'
-    ).encode(
-        alt.X('sepalLength:Q', 
-            bin=alt.Bin(maxbins=20, extent=xrange), 
-            stack=None, 
-            scale=alt.Scale(domain=xrange),
-            ),
-        alt.Y('count(*):Q', 
-            stack=None, 
-            ),
-        alt.Color('species:N'),
-    ).properties(height=60)
-
-    right_hist = alt.Chart(iris).mark_area(
-        opacity=.4, interpolate='step'
-    ).encode(
-        alt.Y('sepalWidth:Q', 
-            bin=alt.Bin(maxbins=20, extent=yrange), 
-            stack=None,
-            scale=alt.Scale(domain=yrange),
-            ),
-        alt.X('count(*):Q', 
-            stack=None, 
-            ),
-        alt.Color('species:N'),
-    ).properties(width=60)
-
-    chart = top_hist & (points | right_hist)
-    st.write(chart)
+    
 
 
     import pandas as pd
