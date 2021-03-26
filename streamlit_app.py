@@ -23,83 +23,10 @@ from sklearn.metrics import confusion_matrix, accuracy_score, classification_rep
 from sklearn.metrics import roc_curve, auc, roc_auc_score
 from sklearn.metrics import precision_score, recall_score, precision_recall_curve,f1_score, fbeta_score, log_loss
 
-
-
-
-
-
-# def local_css(file_name):
-#     with open(file_name) as f:
-#         st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
-
-# def remote_css(url):
-#     st.markdown(f'<link href="{url}" rel="stylesheet">', unsafe_allow_html=True)    
-
-# def icon(icon_name):
-#     st.markdown(f'<i class="material-icons">{icon_name}</i>', unsafe_allow_html=True)
-
-# local_css("style.css")
-# remote_css('https://fonts.googleapis.com/icon?family=Material+Icons')
-
-# icon("search")
-# selected = st.text_input("", "Search...")
-# button_clicked = st.button("OK")
-
-# st.markdown(
-#     """
-# <style>
-# .reportview-container .markdown-text-container {
-#     font-family: monospace;
-# }
-# .sidebar .sidebar-content {
-#     background-image: url("https://i.pinimg.com/originals/80/38/5d/80385d6fa0e6cafef67442020b096b85.jpg");
-#     background-size: cover;
-#     color: #158c8c;
-# }
-# .Widget>label {
-#     color: #c2a9c2;
-#     font-family: monospace;
-# }
-# [class^="st-b"]  {
-#     color: white;
-#     font-family: monospace;
-# }
-# .st-bb {
-#     background-color: transparent;
-# }
-
-# .st-bb {
-#     background-color: #c2a9c2;
-# }
-
-# footer {
-#     font-family: monospace;
-# }
-# .reportview-container .main footer, .reportview-container .main footer a {
-#     color: #158c8c;
-# }
-# header .decoration {
-#     background-image: url("https://images.unsplash.com/photo-1542281286-9e0a16bb7366");
-# }
-
-# </style>
-# """,
-#     unsafe_allow_html=True,
-# )
-
-
 import time
-# my_bar = st.progress(0)
-# for percent_complete in range(100):
-#     time.sleep(0.1)
-#     my_bar.progress(percent_complete + 1)
+from PIL import Image
 
-# st.spinner()
-# with st.spinner(text='Picking your purrfect picture'):
-#     st.balloons()
-#     time.sleep(5)
-#     st.success('Done')
-# st.balloons()
+
 
 
 st.title('Welcome to Picture Purrfect!')
@@ -107,21 +34,10 @@ my_slot_header_all = st.empty()
 
 st.sidebar.header('MENU')
 menu = ['Home','Your purrfect pic','Customize picker', 'Analysis','About']
-menu = ['Test2','Home','Your purrfect pic','Customize picker', 'Analysis','About']
+menu = ['Home','Your purrfect pic','Customize picker', 'Analysis','About','Test','Test2']
 choice = st.sidebar.selectbox("", menu)
 
-page_bg_img = '''
-<style>
-body {
-background-image: url("https://i.pinimg.com/originals/80/38/5d/80385d6fa0e6cafef67442020b096b85.jpg");
 
-}
-</style>
-'''
-st.markdown(page_bg_img, unsafe_allow_html=True)
-
-
-# Saved as .csv in data folder
 # Headers (=column names for df)
 headers = ['frame_name','lp_cat','lp_all','lp_ratio','lp_cat_canny','lp_all_canny','lp_ratio_canny','blur',\
         'cat_x','cat_y','face_size','size_ratio',\
@@ -131,71 +47,25 @@ headers = ['frame_name','lp_cat','lp_all','lp_ratio','lp_cat_canny','lp_all_cann
 rows = []
 
 
+if choice == "Home":
 
+    st.subheader('Capture the best momemt with your furry friend!')
 
+    image1 = Image.open('./img/chiffon.jpg')
+    image2 = Image.open('./img/cheddar.jpg')
+    image3 = Image.open('./img/chiffon2.jpg')
+    image4 = Image.open('./img/cheddar2.jpg')
 
+    cat_imgs=[image1,image2,image3,image4]
+    st.image(cat_imgs,width=174)
 
+    st.subheader('Ever struggled with taking a good picture of your cat?')
+    st.write("We tend to take a bunch of photos in fear of missing out.\
+        Especially for cute animals since it's even more difficult to capture a good one when\
+        you cannot tell them to hold still. Afterwards, it's extremely time-consuming to go through all the photos and manually select the best one to keep.\
+        ")
+    st.write("Now you can let Picture Purrfect do the hard job for you! Just take a short video of your cat and the best moment will be picked automatically!")
 
-import streamlit as st
-import streamlit_theme as stt
-
-stt.set_theme({'primary': '#1b3388',
-                'secondary': '#439140'})
-
-
-
-def paginator(label, items, items_per_page=10, on_sidebar=True):
-        """Lets the user paginate a set of items.
-        Parameters
-        ----------
-        label : str
-            The label to display over the pagination widget.
-        items : Iterator[Any]
-            The items to display in the paginator.
-        items_per_page: int
-            The number of items to display per page.
-        on_sidebar: bool
-            Whether to display the paginator widget on the sidebar.
-            
-        Returns
-        -------
-        Iterator[Tuple[int, Any]]
-            An iterator over *only the items on that page*, including
-            the item's index.
-        Example
-        -------
-        This shows how to display a few pages of fruit.
-        >>> fruit_list = [
-        ...     'Kiwifruit', 'Honeydew', 'Cherry', 'Honeyberry', 'Pear',
-        ...     'Apple', 'Nectarine', 'Soursop', 'Pineapple', 'Satsuma',
-        ...     'Fig', 'Huckleberry', 'Coconut', 'Plantain', 'Jujube',
-        ...     'Guava', 'Clementine', 'Grape', 'Tayberry', 'Salak',
-        ...     'Raspberry', 'Loquat', 'Nance', 'Peach', 'Akee'
-        ... ]
-        ...
-        ... for i, fruit in paginator("Select a fruit page", fruit_list):
-        ...     st.write('%s. **%s**' % (i, fruit))
-        """
-
-        # Figure out where to display the paginator
-        if on_sidebar:
-            location = st.sidebar.empty()
-        else:
-            location = st.empty()
-
-        # Display a pagination selectbox in the specified location.
-        items = list(items)
-        n_pages = len(items)
-        n_pages = (len(items) - 1) // items_per_page + 1
-        page_format_func = lambda i: "Page %s" % i
-        page_number = location.selectbox(label, range(n_pages), format_func=page_format_func)
-
-        # Iterate over the items in the page to let the user display them.
-        min_index = page_number * items_per_page
-        max_index = min_index + items_per_page
-        import itertools
-        return itertools.islice(enumerate(items), min_index, max_index)
-        
 
 
 def new_video_pick(f,fine):
@@ -549,19 +419,13 @@ def new_video_pick(f,fine):
 
     print('Done')
 
-
-
-
-
-
-
-
 if choice == "Your purrfect pic":
+    
     # Check if data folder has images already
-
     mypath='data/'
     filelist = [f for f in os.listdir(mypath)]
 
+    # Assign the slots
     my_slot_headline = st.empty()
     my_slot_upload= st.empty()
     my_slot_slider = st.empty()
@@ -575,71 +439,23 @@ if choice == "Your purrfect pic":
     my_slot_previous_result_image = st.empty()
 
 
-
-    
-
-    # st.subheader('Upload a new video')
-    # f = st.file_uploader('Upload your video here:',type=['MOV','MP4'],key='another video')
-
-    # how_fine = st.select_slider(
-    #     'How do you want us to go through the frames?',
-    #     options=['course (I want it fast)', 'medium', 'fine (I can wait)'],)
-    # st.write('You selected:', how_fine)
-
-    # fine_convert = {'course (I want it fast)':2, 'medium':1, 'fine (I can wait)':0.5}
-    # fine = fine_convert[how_fine]
-
-
-    # if st.button('Start picking'):
-    #     if f is not None:
-    #         new_video_pick(f,fine)
-
-    #     else:
-    #         st.write('Please upload a video first!')
-
-
-    
-    # st.subheader("Your Purrfect Picture")
-
     if 'df_predict.csv' in filelist:
         try:
             my_slot_previous_result_head.subheader("Previous Purrfect Picture:")
             st.write("Don't like the photo we picked? No worries!\
                     Use the customized criteria selector on the left!")
             df = pd.read_csv('./data/df_predict.csv')
+
             # Display best frame
             best_frame = df.frame_name.iloc[0]
-            # stframe = st.empty()
-            # stframe.image('data/' + best_frame)
             my_slot_previous_result_image.image('data/' + best_frame)
-            # # Display the DataFrame
-            # show_df = st.checkbox('Show Frame Data')
-            # if show_df:
-            #     st.write(df.iloc[:,1:])
             
         except:
             my_slot_result.subheader("Please upload a new video!")
-            # f = st.file_uploader('Upload your video here:',type=['MOV','MP4'],key='new video')
-            # if f is not None:
-            #     new_video_pick(f)
-            #     video_name = f.name
-            #     # # Display the DataFrame
-            #     # show_df = st.checkbox('Show Frame Data',key='new video')
-            #     # if show_df:
-            #     #     st.write(df.iloc[:,1:])
 
 
     else:
-        my_slot_headline.subheader("Let's tyr it out!")        
-        # # Upload video for the first time
-        # f = st.file_uploader('Upload your video here:',type=['MOV','MP4'],key='new video')
-        # if f is not None:
-        #     new_video_pick(f)
-        #     video_name = f.name
-        #     # # Display the DataFrame
-        #     # show_df = st.checkbox('Show Frame Data',key='new video')
-        #     # if show_df:
-        #     #     st.write(df.iloc[:,1:])
+        my_slot_headline.subheader("Let's tyr it out!")
 
 
 
@@ -648,11 +464,10 @@ if choice == "Your purrfect pic":
     if f is not None:
         my_slot_file.write(f.name)
 
+    # Select how thorough you want the frames to be sifted through
     how_fine = my_slot_slider.select_slider(
         'How do you want the frames to be sifted?',
         options=['course (I want it fast)', 'medium', 'fine (I can wait)'],key='another video test')
-    # st.write('You selected:', how_fine)
-
     fine_convert = {'course (I want it fast)':2, 'medium':1, 'fine (I can wait)':0.5}
     fine = fine_convert[how_fine]
     
@@ -662,40 +477,6 @@ if choice == "Your purrfect pic":
 
         else:
             st.write('Please upload a video first!')
-
-    
-
-
-    # if st.button('Start picking'):
-    #     if f is not None:
-    #         new_video_pick(f,fine)
-
-    #     else:
-    #         st.write('Please upload a video first!')
-
-
-
-    
-
-   
-
-    
-
-
-    # try:
-    #     # Display best frame
-    #     best_frame = df.frame_name.iloc[0]
-    #     stframe = st.empty()
-    #     stframe.image('data/' + best_frame)
-    # except:
-    #     f = st.file_uploader('Upload your video here:',type=['MOV','MP4'],key='new video')
-    #     if f is not None:
-    #         new_video_pick(f)
-    #         video_name = f.name
-    #         # Display the DataFrame
-    #         show_df = st.checkbox('Show Frame Data',key='new video')
-    #         if show_df:
-    #             st.write(df.iloc[:,1:])
 
     
 if choice == "Customize picker":
@@ -729,7 +510,6 @@ if choice == "Customize picker":
         df['eye_shape_2'] = (df['eye_h2']/df['eye_w2'])
         df['eye_shape_diff'] = abs(df['eye_shape_1']-df['eye_shape_2'])
         df['eye_height_diff'] = abs(df['eye_h1']-df['eye_h2'])
-        # /df['en_x_delta']
         df['new_eye_size'] = df['eye_h']/df['size_ratio']
         best_frame = df.frame_name.iloc[0]
         # st.write(df)
@@ -821,134 +601,123 @@ if choice == "Customize picker":
         my_slot_summary.subheader("Please upload a video first in Your Purrfect Pic!")
 
 
-if choice == "Home":
-
-    st.subheader('Capture the best momemt with your furry friend!')
-
-    from PIL import Image
-    image1 = Image.open('./img/chiffon.jpg')
-    image2 = Image.open('./img/cheddar.jpg')
-    image3 = Image.open('./img/chiffon2.jpg')
-    image4 = Image.open('./img/cheddar2.jpg')
-
-
-    cat_imgs=[image1,image2,image3,image4]
-    st.image(cat_imgs,width=174)
-
-    st.subheader('Ever struggled to take a good picture for your cat?')
-    st.write("We tend to take a bunch of photos in fear of missing out.\
-        Especially for cute animals since it's even more difficult to capture a good one when\
-        you cannot tell them to hold still. Afterwards, it's extremely time-consuming to go through all the photos and manually select the best one to keep.\
-        ")
-    st.write("Now you can let Picture Purrfect do the hard job for you! Just take a short video of your cat and the best moment will be picked automatically!")
-
-
 if choice == "Analysis":
     my_slot_header_all = st.write('In this section, you can examine the statistics of cat detection in your video.')    
 
 
-    result = pd.read_csv('./data/df_predict.csv').iloc[:,1:].sort_values('frame_name').reset_index(drop=True)
-    result['EYE_count']=[str(x) for x in result.num_eye.tolist()]
+    try:
+        result = pd.read_csv('./data/df_predict.csv').iloc[:,1:].sort_values('frame_name').reset_index(drop=True)
+        result['EYE_count']=[str(x) for x in result.num_eye.tolist()]
 
-    result['new_eye_h'] = result['eye_h']/result['face_size']
-    result['new_eye_w'] = result['eye_w']/result['face_size']
-
-
-    # First plot
-    result_sort = result[['frame_name','new_eye_w','new_eye_h','lp_cat_canny','EYE_count']].sort_values('new_eye_h').iloc[20:-5]
-    result_sort.columns = ['Frame Name','Eye Width','Eye Height','Face Sharpness','Number of eyes detected']
-
-    c = alt.Chart(result_sort).mark_circle(opacity=.8).encode(
-        x=alt.X('Eye Height',axis=alt.Axis(gridColor='black',gridWidth=.1,labels=False),
-                scale=Scale(domain=[np.mean(result['new_eye_h'])/2, 1.5*np.mean(result['new_eye_h'])])
-            ),
-        y=alt.Y('Eye Width',axis=alt.Axis(labels=False)),
-        size='Face Sharpness',
-    #     color='Number of eyes detected',
-    #     color = alt.Color('Number of eyes detected',
-    #                       scale=alt.Scale(scheme = 'set2')
-        color = alt.Color('Number of eyes detected',
-                        scale=alt.Scale(range=['#C7648E','#3A5AB1',])
-                        ),
-        tooltip=['Frame Name',]).properties(width=700, height=250
-    )
-
-    st.subheader('Eye Shape Analysis')
-    st.write(c)
+        result['new_eye_h'] = result['eye_h']/result['face_size']
+        result['new_eye_w'] = result['eye_w']/result['face_size']
 
 
-    # Second plot
-    MAX = max(result.face_size)
-    MIN = min(result.face_size)
-    section = (max(result.face_size)-min(result.face_size))//3
+        # First plot
+        result_sort = result[['frame_name','new_eye_w','new_eye_h','lp_cat_canny','EYE_count']].sort_values('new_eye_h').iloc[20:-5]
+        result_sort.columns = ['Frame Name','Eye Width','Eye Height','Face Sharpness','Number of eyes detected']
 
-    FACE_SIZE = []
-    for x in result.face_size.tolist():
-        if x<MIN+section:
-            FACE_SIZE.append('small')
-        elif MIN+section < x < MIN + 2*section:
-            FACE_SIZE.append('medium')
-        else:
-            FACE_SIZE.append('large')
+        c = alt.Chart(result_sort).mark_circle(opacity=.8).encode(
+            x=alt.X('Eye Height',axis=alt.Axis(gridColor='black',gridWidth=.1,labels=False),
+                    scale=Scale(domain=[np.mean(result['new_eye_h'])/2, 1.5*np.mean(result['new_eye_h'])])
+                ),
+            y=alt.Y('Eye Width',axis=alt.Axis(labels=False)),
+            size='Face Sharpness',
+            color = alt.Color('Number of eyes detected',
+                            scale=alt.Scale(range=['#C7648E','#3A5AB1',])
+                            ),
+            tooltip=['Frame Name',]).properties(width=700, height=250
+        )
 
-    result['Face size'] = FACE_SIZE
-
-    result_middle_all = result.sort_values('new_eye_h').iloc[20:-10]
-    result_middle = result_middle_all[['lp_cat_canny','lp_ratio','Face size']]
-    result_middle.columns = ['Cat face sharpness','Sharpness ratio (cat:whole frame)','Face size']
-
-
-    points = alt.Chart(result_middle).mark_circle(size=200).encode(
-        alt.X('Cat face sharpness'),
-        alt.Y('Sharpness ratio (cat:whole frame)'),
-    #     color='FACE_SIZE',
-        color = alt.Color('Face size',
-                        scale=alt.Scale(range=['#D690AC','#6F88CD','#64C7B1',])),
-    )
-
-    top_hist = alt.Chart(result_middle).mark_area(
-        opacity=.5, interpolate='step'
-    ).encode(
-        alt.X('Cat face sharpness:Q', 
-            bin=alt.Bin(maxbins=20), 
-            stack=None, 
-            
-            ),
-        alt.Y('count(*):Q', 
-            stack=None, 
-            ),
-        alt.Color('Face size:N'),
-    ).properties(height=60)
-
-    right_hist = alt.Chart(result_middle).mark_area(
-        opacity=.5, interpolate='step'
-    ).encode(
-        alt.Y('Sharpness ratio (cat:whole frame):Q', 
-            bin=alt.Bin(maxbins=20), 
-            stack=None,
-            ),
-        alt.X('count(*):Q', 
-            stack=None, 
-            ),
-        alt.Color('Face size:N'),
-    ).properties(width=60)
-
-    chart = top_hist & (points | right_hist)
-
-    st.subheader('Blur Detection Analysis')
-    st.write(chart)
+        st.subheader('Eye Shape Analysis')
+        st.write(c)
 
 
+        # Second plot
+        MAX = max(result.face_size)
+        MIN = min(result.face_size)
+        section = (max(result.face_size)-min(result.face_size))//3
 
+        FACE_SIZE = []
+        for x in result.face_size.tolist():
+            if x<MIN+section:
+                FACE_SIZE.append('small')
+            elif MIN+section < x < MIN + 2*section:
+                FACE_SIZE.append('medium')
+            else:
+                FACE_SIZE.append('large')
+
+        result['Face size'] = FACE_SIZE
+
+        result_middle_all = result.sort_values('new_eye_h').iloc[20:-10]
+        result_middle = result_middle_all[['lp_cat_canny','lp_ratio','Face size']]
+        result_middle.columns = ['Cat face sharpness','Sharpness ratio (cat:whole frame)','Face size']
+
+
+        points = alt.Chart(result_middle).mark_circle(size=200).encode(
+            alt.X('Cat face sharpness'),
+            alt.Y('Sharpness ratio (cat:whole frame)'),
+            color = alt.Color('Face size',
+                            scale=alt.Scale(range=['#D690AC','#6F88CD','#64C7B1',])),
+        )
+
+        top_hist = alt.Chart(result_middle).mark_area(
+            opacity=.5, interpolate='step'
+        ).encode(
+            alt.X('Cat face sharpness:Q', 
+                bin=alt.Bin(maxbins=20), 
+                stack=None, 
+                
+                ),
+            alt.Y('count(*):Q', 
+                stack=None, 
+                ),
+            alt.Color('Face size:N'),
+        ).properties(height=60)
+
+        right_hist = alt.Chart(result_middle).mark_area(
+            opacity=.5, interpolate='step'
+        ).encode(
+            alt.Y('Sharpness ratio (cat:whole frame):Q', 
+                bin=alt.Bin(maxbins=20), 
+                stack=None,
+                ),
+            alt.X('count(*):Q', 
+                stack=None, 
+                ),
+            alt.Color('Face size:N'),
+        ).properties(width=60)
+
+        chart = top_hist & (points | right_hist)
+
+        st.subheader('Blur Detection Analysis')
+        st.write(chart)
+
+
+    except:
+            st.subheader("Please upload a new video!")
 
 
 
 
+st.sidebar.header("")
+st.sidebar.header("")
+# st.sidebar.header("")
+# st.sidebar.header("")
 
-def draw_all(
-    key,
-    plot=False,
-):
+st.sidebar.markdown('###### Made by Katie Huang 2021')
+
+
+
+
+
+
+
+
+# Below is the test section
+# For plotting, streamlit features, deployment testing
+
+def draw_all(key,plot=False,):
     st.write(
         """
         # Example Widgets
@@ -1013,63 +782,19 @@ def draw_all(
         # st.help(st.write)
     st.write("This is the end. Have fun building themes!")
 
-
-
-
-
-    # if plot:
-    #     st.write("Oh look, a plot:")
-    #     x1 = np.random.randn(200) - 2
-    #     x2 = np.random.randn(200)
-    #     x3 = np.random.randn(200) + 2
-
-    #     hist_data = [x1, x2, x3]
-    #     group_labels = ["Group 1", "Group 2", "Group 3"]
-
-    #     fig = ff.create_distplot(hist_data, group_labels, bin_size=[0.1, 0.25, 0.5])
-
-    #     st.plotly_chart(fig, use_container_width=True)
-
-    st.file_uploader("You can now upload with style", key=key)
-    st.slider(
-        "From 10 to 11, how cool are themes?", min_value=10, max_value=11, key=key
-    )
-    # st.select_slider("Pick a number", [1, 2, 3], key=key)
-    st.number_input("So many numbers", key=key)
-    st.text_area("A little writing space for you :)", key=key)
-    st.selectbox(
-        "My favorite thing in the world is...",
-        ["Streamlit", "Theming", "Baloooons 🎈 "],
-        key=key,
-    )
-    # st.multiselect("Pick a number", [1, 2, 3], key=key)
-    # st.color_picker("Colors, colors, colors", key=key)
-    with st.beta_expander("Expand me!"):
-        st.write("Hey there! Nothing to see here 👀 ")
-    st.write("")
-    # st.write("That's our progress on theming:")
-    # st.progress(0.99)
-    if plot:
-        st.write("And here's some data and plots")
-        st.json({"data": [1, 2, 3, 4]})
-        st.dataframe({"data": [1, 2, 3, 4]})
-        st.table({"data": [1, 2, 3, 4]})
-        st.line_chart({"data": [1, 2, 3, 4]})
-        # st.help(st.write)
-    st.write("This is the end. Have fun building themes!")
-
+def save_uploaded_file(uploadedfile):
+     with open(os.path.join("/app/picturepurrfect_app/tempDir/",uploadedfile.name),"wb") as f:
+         f.write(uploadedfile.getbuffer())
+     return st.success("Saved File:{} to tempDir".format(uploadedfile.name))
     
-
 if choice == "Test":
 
-    
     result = pd.read_csv('./data/df_predict.csv').iloc[:,1:].sort_values('frame_name').reset_index(drop=True)
     result['EYE_count']=[str(x) for x in result.num_eye.tolist()]
 
     result['new_eye_h'] = result['eye_h']/result['face_size']
     result['new_eye_w'] = result['eye_w']/result['face_size']
 
-    
 
 
     import pandas as pd
@@ -1227,7 +952,9 @@ if choice == "Test":
     col2.button('👿...Nope!')
 
     # Draw some dummy content in main page and sidebar.
-    draw_all("main", plot=True)
+    
+    # draw_all("main", plot=True)
+    
     with st.sidebar:
         draw_all("sidebar")
 
@@ -1353,13 +1080,13 @@ if choice == "Test":
     st.markdown(page_bg_img, unsafe_allow_html=True)
 
     from PIL import Image
-    image = Image.open('chiffon.jpg')
+    image = Image.open('./img/chiffon.jpg')
     st.image(image, caption='Find the best picture for you furry friend!')
 
-    image1 = Image.open('chiffon.jpg')
-    image2 = Image.open('cheddar.jpg')
-    image3 = Image.open('chiffon2.jpg')
-    image4 = Image.open('cheddar2.jpg')
+    image1 = Image.open('./img/chiffon.jpg')
+    image2 = Image.open('./img/cheddar.jpg')
+    image3 = Image.open('./img/chiffon2.jpg')
+    image4 = Image.open('./img/cheddar2.jpg')
 
 
     cat_imgs=[image1,image2,image3,image4]
@@ -1438,24 +1165,6 @@ if choice == "Test":
     my_slot1.subheader('Doing it')
     time.sleep(1)
     my_slot1.subheader('DONE!')
-
-
-
-st.sidebar.header("")
-st.sidebar.header("")
-# st.sidebar.header("")
-# st.sidebar.header("")
-
-st.sidebar.markdown('###### Made by Katie Huang 2021')
-
-
-
-
-
-def save_uploaded_file(uploadedfile):
-     with open(os.path.join("/app/picturepurrfect_app/tempDir/",uploadedfile.name),"wb") as f:
-         f.write(uploadedfile.getbuffer())
-     return st.success("Saved File:{} to tempDir".format(uploadedfile.name))
      
 if choice == "Test2":
 
