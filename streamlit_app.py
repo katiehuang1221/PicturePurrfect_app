@@ -7,6 +7,7 @@ import cv2 as cv
 cascade_classifier = cv.CascadeClassifier(cv.data.haarcascades + \
     'haarcascade_frontalcatface_extended.xml')
 import tempfile
+import os
 
 import pandas as pd
 import numpy as np
@@ -106,7 +107,7 @@ my_slot_header_all = st.empty()
 
 st.sidebar.header('MENU')
 menu = ['Home','Your purrfect pic','Customize picker', 'Analysis','About']
-# ['Test','Home','Your purrfect pic','Customize picker', 'Analysis','About']
+menu = ['Test2','Home','Your purrfect pic','Customize picker', 'Analysis','About']
 choice = st.sidebar.selectbox("", menu)
 
 page_bg_img = '''
@@ -557,7 +558,6 @@ def new_video_pick(f,fine):
 
 if choice == "Your purrfect pic":
     # Check if data folder has images already
-    import os
 
     mypath='data/'
     filelist = [f for f in os.listdir(mypath)]
@@ -1447,3 +1447,29 @@ st.sidebar.header("")
 # st.sidebar.header("")
 
 st.sidebar.markdown('###### Made by Katie Huang 2021')
+
+
+
+
+
+def save_uploaded_file(uploadedfile):
+     with open(os.path.join("tempDir",uploadedfile.name),"wb") as f:
+         f.write(uploadedfile.getbuffer())
+     return st.success("Saved File:{} to tempDir".format(uploadedfile.name))
+     
+if choice == "Test2":
+
+    uploadedfile = st.file_uploader('Upload your video here:',type=['MOV','MP4'],key='another video test')
+    
+
+    # with open(os.path.join("tempDir",uploadedfile.name),"wb") as f:
+    #     f.write(uploadedfile.getbuffer())
+
+
+    datafile = st.file_uploader("Upload CSV",type=['csv'])
+    if datafile is not None:
+        file_details = {"FileName":datafile.name,"FileType":datafile.type}
+        df  = pd.read_csv(datafile)
+        st.dataframe(df)
+        # Apply Function here
+        save_uploaded_file(datafile)
