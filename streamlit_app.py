@@ -809,7 +809,7 @@ if choice == "Customize picker":
 
             
             # my_slot_result_like
-            col1, col2,col3 = my_slot_caption_like.beta_columns([1,0.28,0.2])
+            col1, col2,col3 = my_slot_caption_like.beta_columns([1,0.26,0.2])
             # col1.markdown(":hearts:")
             col2.button('♥️...Love it!')
             col3.button('👿...Nope!')
