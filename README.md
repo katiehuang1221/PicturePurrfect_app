@@ -1,6 +1,6 @@
 # PicturePurrfect_app
 
-#### 1. Your Purffect Pic
+#### 1. Your purffect pic
 Drag or drop your video file and hit the button *Start picking*:paw_prints:
 ![embed](https://github.com/katiehuang1221/PicturePurrfect_app/blob/main/img/app_demo_1.gif)
 
