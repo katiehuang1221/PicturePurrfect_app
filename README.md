@@ -4,12 +4,12 @@
 Drag or drop your video file and hit the button *Start picking*:paw_prints:
 ![embed](https://github.com/katiehuang1221/PicturePurrfect_app/blob/main/img/app_demo_1.gif)
 
-
+</br>
 #### 2. Customized picker
-Try different metrics to check out other great pics!
+Try different metrics to check out other great pics!  
 ![embed](https://github.com/katiehuang1221/PicturePurrfect_app/blob/main/img/app_demo_2.gif)
 
-
+</br>
 #### 3. Analysis
 Learn about the statistics of your cat's eye shape and frame quality!
 ![embed](https://github.com/katiehuang1221/PicturePurrfect_app/blob/main/img/app_demo_3.gif)
