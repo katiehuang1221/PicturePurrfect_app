@@ -1453,14 +1453,12 @@ st.sidebar.markdown('###### Made by Katie Huang 2021')
 
 
 def save_uploaded_file(uploadedfile):
-     with open(os.path.join("/app/picturepurrfect_app//tempDir/",uploadedfile.name),"wb") as f:
+     with open(os.path.join("/app/picturepurrfect_app/tempDir/",uploadedfile.name),"wb") as f:
          f.write(uploadedfile.getbuffer())
      return st.success("Saved File:{} to tempDir".format(uploadedfile.name))
      
 if choice == "Test2":
 
-    uploadedfile = st.file_uploader('Upload your video here:',type=['MOV','MP4'],key='another video test')
-    
 
     # with open(os.path.join("tempDir",uploadedfile.name),"wb") as f:
     #     f.write(uploadedfile.getbuffer())
