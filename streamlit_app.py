@@ -1453,7 +1453,7 @@ st.sidebar.markdown('###### Made by Katie Huang 2021')
 
 
 def save_uploaded_file(uploadedfile):
-     with open(os.path.join("/app/picturepurrfect_app/tempDir/",uploadedfile.name),"wb") as f:
+     with open(os.path.join("/home/app/picturepurrfect_app/tempDir/",uploadedfile.name),"wb") as f:
          f.write(uploadedfile.getbuffer())
      return st.success("Saved File:{} to tempDir".format(uploadedfile.name))
      
